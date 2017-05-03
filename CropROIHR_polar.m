@@ -80,6 +80,7 @@ m=StructToMat(list_left);
 data_final=[];
 data_final_match=[];
 Stats_List = zeros(numel(Rx),6);
+radius_List = zeros(numel(Rx),1);
 z_quantile_cat1 = zeros(numel(Rx),4);
 z_quantile_cat2 = zeros(numel(Rx),4);
 quantile_list = [0.05 0.1 0.9 0.95];
@@ -144,8 +145,8 @@ for i=1:numel(Rx)
         CatNow=data_now(:,1);
 
         
-        [statsNow] = polar2(LxNow,LyNow,xCenter,yCenter,CatNow);
-        radius_out=[radius_out; statsNow];
+        [rad_out] = polar2(LxNow,LyNow,xCenter,yCenter,CatNow);
+        radius_List(i) = rad_out;
         daxCenter=[Ry(i),Rx(i)];
         daxCenterScale=round(daxCenter*scale);
         
@@ -253,6 +254,9 @@ WriteMolBinN(list_final_match,outfile_match);
 filenameStats_match = sprintf('%s-stats-matched.mat',filehead);
 filenameStats_nomatch = sprintf('%s-stats-nonmatched.mat',filehead);
 Stats_List_matched = Stats_List(match_list_ind,:);
+radius_List_matched = radius_List(match_list_ind,:);
+radius_List_nonmatched = radius_List;
+radius_List_nonmatched(match_list_ind,:) = [];
 Stats_List_nonmatched = Stats_List;
 Stats_List_nonmatched(match_list_ind,:) = [];
 z_quantile_cat1_nonmatched = z_quantile_cat1;
@@ -262,8 +266,8 @@ z_quantile_cat2_nonmatched(match_list_ind,:) = [];
 z_quantile_cat1_matched = z_quantile_cat1(match_list_ind,:);
 z_quantile_cat2_matched = z_quantile_cat2(match_list_ind,:);
 
-save(filenameStats_match,'Stats_List_matched');
-save(filenameStats_nomatch,'Stats_List_nonmatched');
+save(filenameStats,'Stats_List_matched','Stats_List_nonmatched','radius_List_nonmatched','radius_List_matched');
+
 % Stats_List = Stats_List';
 % filenameStats = sprintf('%s-stats.txt',filehead);
 % fileID = fopen(filenameStats,'w')
