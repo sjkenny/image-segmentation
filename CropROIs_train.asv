@@ -41,7 +41,7 @@ for i=1:length(labels)
     y_now = y(idx);
     %PxSize accounted for in ransac_ring
     [t_hist, r_hist, center, score, radius] = ransac_ring(x_now,y_now);
-    train_Now = [score/list_num; radius; center';...
+    train_Now = [score/list_num; radius; (center-1400)';...
                     (r_hist./list_num)'; std(t_hist)/mean(t_hist);...
                     std(r_hist)/mean(r_hist)];
     train.X(:,i) = train_Now;
@@ -74,4 +74,4 @@ accuracy_svm = sum(label_svm==Y)/length(Y);
 fprintf('SVM Training accuracy: %2.1f%%\n', 100*accuracy_svm);
 
 CVSVMModel = crossval(SVMModel);
-[label_svm,score_svm] = predict(CVSVMModel,X);
+[label_svm,score_svm] = predict(SVMModel,X);

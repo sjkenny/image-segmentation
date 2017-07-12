@@ -5,9 +5,9 @@
 % until no more peaks are identified
 addpath ../common
 
-thresh=50;
+thresh=200;
 
-r=OpenMolListTxt;
+[r,filename]=OpenMolListTxt;
 CatSelect=1;
 CatInd=find(r.cat==CatSelect);
 X=[double(r.xc) double(r.yc)];
@@ -62,7 +62,8 @@ while ~FindCenters
     coords=[coords;CoordsNow];
     count(aiLow:aiHigh,biLow:biHigh)=0;
 end
-    
-    
+
+outfile=sprintf('%s-coords',filename)
+save(outfile,'coords')
     
     
