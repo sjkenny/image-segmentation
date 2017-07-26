@@ -3,6 +3,8 @@
 %otherwise explicity declare 'coords' as [X;Y] Nx2 matrix before running)
 %also crops and aligns .dax file
 % function CropROIHR(X)
+clearvars -except coords
+
 addpath ../common
 addpath ../ransac
 %load parameter vector for structure classification
@@ -42,16 +44,23 @@ LastFolder=PathNameL;
 
 GetFileName=sprintf('%s/*.dax',LastFolder);
 [FileNameDax,PathNameDax] = uigetfile(GetFileName,'Select dax file');
-dax =sprintf('%s%s',PathNameDax,FileNameDax);
+
+if ~FileNameDax
+    dax=0;
+else
+    dax =sprintf('%s%s',PathNameDax,FileNameDax);
+    InfName = dax(1:end-4);
+    inf = sprintf('%s.inf',InfName);
+    movie=ReadDax(dax);
+    info=ReadInfoFile(inf);
+    movieScale=imresize(movie,scale);
+    
+end
+
 % GetFileName=sprintf('%s/*.inf',LastFolder);
 % GetFileName=sprintf('%s/*.inf',LastFolder);
 % [FileNameInf,PathNameInf] = uigetfile(GetFileName,'Select inf file');
-InfName = dax(1:end-4);
-inf = sprintf('%s.inf',InfName);
 
-movie=ReadDax(dax);
-info=ReadInfoFile(inf);
-movieScale=imresize(movie,scale);
 
 LeftFile =sprintf('%s%s',PathNameL,FileNameL);
 if LeftFile(end-2)=='b'
@@ -75,9 +84,12 @@ Cat2IndFinal=[];
 Cat3IndFinal=[];
 radius_out=[];
 CoeffInd=[];
-MovSize=size(movie);
-NewMov=[];
-NewMov_match=[];
+if ~~dax
+    MovSize=size(movie);
+    NewMov=[];
+    NewMov_match=[];
+end
+
 %% initialize data matrix for indexing
 m=StructToMat(list_left);
 data_final=[];
@@ -177,14 +189,15 @@ for i=1:numel(Rx)
         daxCenterScale=round(daxCenter*scale);
         
         %find intensity of conv image at center
-        intensity=movieScale(daxCenterScale(1),daxCenterScale(2));
-        
-        
-        daxLoc=[daxCenterScale+ROIWidthScale/2; daxCenterScale-ROIWidthScale/2];
-        movieROI=movieScale(daxLoc(2,1):daxLoc(1,1),daxLoc(2,2):daxLoc(1,2),1);
-        MovFrame=zeros(scale*MovSize(1),scale*MovSize(2));
-        MovFrame(offsetScale:offsetScale+ROIWidthScale,offsetScale:offsetScale+ROIWidthScale)=movieROI;
-        MovFrameI=imresize(MovFrame,1/scale);
+        intensity=0;
+        if ~~dax
+            intensity=movieScale(daxCenterScale(1),daxCenterScale(2));
+            daxLoc=[daxCenterScale+ROIWidthScale/2; daxCenterScale-ROIWidthScale/2];
+            movieROI=movieScale(daxLoc(2,1):daxLoc(1,1),daxLoc(2,2):daxLoc(1,2),1);
+            MovFrame=zeros(scale*MovSize(1),scale*MovSize(2));
+            MovFrame(offsetScale:offsetScale+ROIWidthScale,offsetScale:offsetScale+ROIWidthScale)=movieROI;
+            MovFrameI=imresize(MovFrame,1/scale);
+        end
         
         
         if intensity>ConvThresh
@@ -198,7 +211,9 @@ for i=1:numel(Rx)
             data_now(:,15)=frame_count;
             frame_count=frame_count+1;
             data_final = [data_final; data_now];
-            NewMov = cat(3,NewMov,MovFrameI);
+            if ~~dax
+                NewMov = cat(3,NewMov,MovFrameI);
+            end
         end
 %       need to replicate molecules into new list
 %       don't need N, totalframes
@@ -218,16 +233,19 @@ for i=1:numel(Rx)
 end
 fprintf('Cropping done! \rMatched ROIs: %d \rNon-matched ROIs: %d \rWriting output... \r',frame_count_match-1, frame_count-1)
 
-% [scores,predicted_labels] = binary_classifier(theta, classifier_parameters);
+%% [scores,predicted_labels] = binary_classifier(theta, classifier_parameters);
 %need to load SVMModel first
-[predicted_labels,scores] = predict(SVMModel,classifier_parameters');
+% [predicted_labels,scores] = predict(SVMModel,classifier_parameters');
 
 list_final = MatToStruct(data_final);
-list_final_match = MatToStruct(data_final_match);
+if ~~dax
+    list_final_match = MatToStruct(data_final_match);
+    LxN_match = list_final_match.xc;
+    LyN_match = list_final_match.yc;
+end
 LxN = list_final.xc;
 LyN = list_final.yc;
-LxN_match = list_final_match.xc;
-LyN_match = list_final_match.yc;
+
 
 if AverageMode==1
 %taken care of when data is centered
@@ -247,37 +265,42 @@ else
     outfile=sprintf('%s-CropROIs-combined.bin',filehead);
 end
 
-MovSize=size(NewMov);
-MovSize_match=size(NewMov_match);
-MovSize=MovSize(3);
-MovSize_match=MovSize_match(3);
-NewMov=int16(NewMov);
-NewMov_match=int16(NewMov_match);
-NewMov=abs(NewMov);
-NewMov_match=abs(NewMov_match);
+if ~~dax
+    MovSize=size(NewMov);
+    MovSize_match=size(NewMov_match);
+    MovSize=MovSize(3);
+    MovSize_match=MovSize_match(3);
+    NewMov=int16(NewMov);
+    NewMov_match=int16(NewMov_match);
+    NewMov=abs(NewMov);
+    NewMov_match=abs(NewMov_match);
+end
+if ~~dax
+    fileheadDax = dax(1:end-4);
+    DaxName=sprintf('%s-CropROIs.dax',fileheadDax);
+    DaxName_match=sprintf('%s-CropROIs-match.dax',fileheadDax);
+    FileNameInf=sprintf('%s.inf',FileNameDax);
+    % InfName=sprintf('%s-CropROIs.inf',fileheadDax);
+    % InfName_match=sprintf('%s-CropROIs-match.inf',fileheadDax);
+    FileNameInfNew=sprintf('%s-CropROIs.inf',FileNameInf(1:end-4));
+    FileNameInfNew_match=sprintf('%s-CropROIs-match.inf',FileNameInf(1:end-4));
+    info.number_of_frames=MovSize;
+    info.file=DaxName;
+    info.notes=[];
+    info.localName=FileNameInfNew;
+    WriteDAXFiles(NewMov,info);
 
-fileheadDax = dax(1:end-4);
-DaxName=sprintf('%s-CropROIs.dax',fileheadDax);
-DaxName_match=sprintf('%s-CropROIs-match.dax',fileheadDax);
-FileNameInf=sprintf('%s.inf',FileNameDax);
-% InfName=sprintf('%s-CropROIs.inf',fileheadDax);
-% InfName_match=sprintf('%s-CropROIs-match.inf',fileheadDax);
-FileNameInfNew=sprintf('%s-CropROIs.inf',FileNameInf(1:end-4));
-FileNameInfNew_match=sprintf('%s-CropROIs-match.inf',FileNameInf(1:end-4));
-info.number_of_frames=MovSize;
-info.file=DaxName;
-info.notes=[];
-info.localName=FileNameInfNew;
-WriteDAXFiles(NewMov,info);
-
-info.number_of_frames=MovSize_match;
-info.file=DaxName_match;
-info.notes=[];
-info.localName=FileNameInfNew_match;
-WriteDAXFiles(NewMov_match,info);
+    info.number_of_frames=MovSize_match;
+    info.file=DaxName_match;
+    info.notes=[];
+    info.localName=FileNameInfNew_match;
+    WriteDAXFiles(NewMov_match,info);
+    
+    WriteMolBinNXcYcZc(list_final_match,outfile_match);
+end
 
 WriteMolBinNXcYcZc(list_final,outfile);
-WriteMolBinNXcYcZc(list_final_match,outfile_match);
+
 
 %save stats list
 filenameStats = sprintf('%s-stats.mat',filehead);
@@ -295,7 +318,7 @@ z_quantile_cat2_nonmatched(match_list_ind,:) = [];
 z_quantile_cat1_matched = z_quantile_cat1(match_list_ind,:);
 z_quantile_cat2_matched = z_quantile_cat2(match_list_ind,:);
 
-save(filenameStats,'scores','predicted_labels','Stats_List_matched','Stats_List_nonmatched','radius_List_nonmatched','radius_List_matched');
+save(filenameStats,'Stats_List_matched','Stats_List_nonmatched','radius_List_nonmatched','radius_List_matched');
 
 % Stats_List = Stats_List';
 % filenameStats = sprintf('%s-stats.txt',filehead);

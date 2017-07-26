@@ -5,10 +5,10 @@
 % until no more peaks are identified
 addpath ../common
 
-thresh=200;
+thresh=500;
 
 [r,filename]=OpenMolListTxt;
-CatSelect=1;
+CatSelect=2;
 CatInd=find(r.cat==CatSelect);
 X=[double(r.xc) double(r.yc)];
 X=X(CatInd,:);

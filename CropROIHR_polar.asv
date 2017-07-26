@@ -152,23 +152,23 @@ for i=1:numel(Rx)
         CatNow=data_now(:,1);
                 
         %find all cat 2 for structure classification - 2 for clathrin
-        idx_use_classifier=find(CatNow==2);
+        idx_use_classifier=find(CatNow==1);
         x_use_classifier = data_now(idx_use_classifier,2);
         y_use_classifier = data_now(idx_use_classifier,3);
         
         %get parameters for binary classifier
         list_num = numel(idx_use_classifier);
-        [t_hist, r_hist, center, score, radius] = ransac_ring(x_use_classifier,y_use_classifier);
-        train_Now = [score; radius; list_num; center';...
-                    t_hist'; r_hist'; std(t_hist)/mean(t_hist);...
-                    std(r_hist)/mean(r_hist)];
-        classifier_parameters(:,i) = train_Now;
+%         [t_hist, r_hist, center, score, radius] = ransac_ring(x_use_classifier,y_use_classifier);
+%         train_Now = [score; radius; list_num; center';...
+%                     t_hist'; r_hist'; std(t_hist)/mean(t_hist);...
+%                     std(r_hist)/mean(r_hist)];
         
-            [t_hist, r_hist, center, score, radius] = ransac_ring(x_now,y_now);
-    train_Now = [score/list_num; radius; (center-1400)';...
-                    (r_hist./list_num)'; std(t_hist)/mean(t_hist);...
-                    std(r_hist)/mean(r_hist)];
-    train.X(:,i) = train_Now;
+        
+        [t_hist, r_hist, center, score, radius] = ransac_ring(x_use_classifier,y_use_classifier);
+        train_Now = [score/list_num; radius; (center-1400)';...
+                        (r_hist./list_num)'; std(t_hist)/mean(t_hist);...
+                        std(r_hist)/mean(r_hist)];
+        classifier_parameters(:,i) = train_Now;
 
         
         [rad_out] = polar2(LxNow,LyNow,xCenter,yCenter,CatNow);
@@ -218,9 +218,9 @@ for i=1:numel(Rx)
 end
 fprintf('Cropping done! \rMatched ROIs: %d \rNon-matched ROIs: %d \rWriting output... \r',frame_count_match-1, frame_count-1)
 
-% [scores,predicted_labels] = binary_classifier(theta, classifier_parameters);
+%% [scores,predicted_labels] = binary_classifier(theta, classifier_parameters);
 %need to load SVMModel first
-[predicted_labels,scores] = predict(SVMModel,classifier_parameters');
+% [predicted_labels,scores] = predict(SVMModel,classifier_parameters');
 
 list_final = MatToStruct(data_final);
 list_final_match = MatToStruct(data_final_match);
@@ -276,8 +276,8 @@ info.notes=[];
 info.localName=FileNameInfNew_match;
 WriteDAXFiles(NewMov_match,info);
 
-WriteMolBinN(list_final,outfile);
-WriteMolBinN(list_final_match,outfile_match);
+WriteMolBinNXcYcZc(list_final,outfile);
+WriteMolBinNXcYcZc(list_final_match,outfile_match);
 
 %save stats list
 filenameStats = sprintf('%s-stats.mat',filehead);
