@@ -5,7 +5,7 @@
 % until no more peaks are identified
 addpath ../common
 
-thresh=500;
+thresh=50;
 
 [r,filename]=OpenMolListTxt;
 CatSelect=2;

@@ -9,8 +9,9 @@ addpath ../
 addpath(genpath('common'))
 addpath ex1
 %%
-load('1_zc_labels')
+
 load('kernels_norm')
+load('svm_conv_2')
 
 if exist('LastFolder','var')
     GetFileName=sprintf('%s/*.bin',LastFolder);
@@ -39,8 +40,8 @@ bin_size = (11-9)/nbins;
 edgek = 9:bin_size:11;
 %%
 train.X = [];
-for i=1:length(labels)
-    fprintf('ROI %d of %d \r',i,length(labels))
+for i=1:max(r.frame)
+    fprintf('ROI %d of %d \r',i,max(r.frame))
     idx = find(frame==i & list.cat==cat);
     list_num = numel(idx);
     x_now = x(idx);
@@ -48,7 +49,7 @@ for i=1:length(labels)
     [count edges mid loc] = histcn([x_now y_now],edgek,edgek);
     n=numel(x_now);
     %normalize by max bin
-    count_norm=count./max(max(count));
+%     count_norm=count./max(max(count));
     %normalize by total counts
     count_norm = count./sum(sum(count));
     
@@ -74,40 +75,16 @@ for i=1:length(labels)
     train.X(:,i) = train_Now;
 end
 
-
-
-train_size = size(train.X);
-%%
-theta = rand(train_size(1),1)*.001;
-% train.X(1,:)=[];
-% train.X(3,:)=[];
-
-options = struct('MaxIter', 1000,'optTol',0.000001);
-%minimize theta
-tic;
-theta=minFunc(@logistic_regression_vec, theta, options, train.X, train.y);
-fprintf('Optimization took %f seconds.\n', toc);
-
-accuracy = binary_classifier_accuracy(theta,train.X,train.y);
-fprintf('Training accuracy: %2.1f%%\n', 100*accuracy);
-
-
 %% SVM
 X=train.X';
-Y=cast(labels,'logical');
-SVMModel = fitcsvm(X,Y,'KernelFunction','rbf','Standardize',true,'ClassNames',[0 1])
 [label_svm,score_svm] = predict(SVMModel,X);
-accuracy_svm = sum(label_svm==Y)/length(Y);
-fprintf('SVM Training accuracy: %2.1f%%\n', 100*accuracy_svm);
-label_idx_1 = find(labels);
-label_idx_0 = find(~labels);
-CVSVMModel = crossval(SVMModel);
-% [label_svm,score_svm] = predict(CVSVMModel,X);
+
 %%
-clf
-plot(train.X(1,label_idx_1),train.X(3,label_idx_1),'k.')
-hold on
-plot(train.X(1,label_idx_0),train.X(3,label_idx_0),'m.')
+% label_idx_1 = find(labels);
+% label_idx_0 = find(~labels);
+% clf
+% plot(train.X(1,label_idx_1),train.X(3,label_idx_1),'k.')
+% hold on
+% plot(train.X(1,label_idx_0),train.X(3,label_idx_0),'m.')
 
 
- % train_Now = [f_disk_max; f_gauss_max; f_ring_max; f_disk_small_max; f_disk_large_max; n; count_std];

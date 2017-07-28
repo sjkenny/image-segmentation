@@ -4,7 +4,7 @@
 %also crops and aligns .dax file
 % function CropROIHR(X)
 clearvars -except coords
-
+load('svm_conv')
 addpath ../common
 addpath ../ransac
 %load parameter vector for structure classification
@@ -164,7 +164,7 @@ for i=1:numel(Rx)
         CatNow=data_now(:,1);
                 
         %find all cat 2 for structure classification - 2 for clathrin
-        idx_use_classifier=find(CatNow==1);
+        idx_use_classifier=find(CatNow==2);
         x_use_classifier = data_now(idx_use_classifier,2);
         y_use_classifier = data_now(idx_use_classifier,3);
         
@@ -174,17 +174,15 @@ for i=1:numel(Rx)
 %         train_Now = [score; radius; list_num; center';...
 %                     t_hist'; r_hist'; std(t_hist)/mean(t_hist);...
 %                     std(r_hist)/mean(r_hist)];
-        
-        
-        [t_hist, r_hist, center, score, radius] = ransac_ring(x_use_classifier,y_use_classifier);
-        train_Now = [score/list_num; radius; (center-1400)';...
-                        (r_hist./list_num)'; std(t_hist)/mean(t_hist);...
-                        std(r_hist)/mean(r_hist)];
+%         
+%         
+%         [t_hist, r_hist, center, score, radius] = ransac_ring(x_use_classifier,y_use_classifier);
+        train_Now = parameterize_ROI(x_use_classifier,y_use_classifier);
         classifier_parameters(:,i) = train_Now;
 
         
-        [rad_out] = polar2(LxNow,LyNow,xCenter,yCenter,CatNow);
-        radius_List(i) = rad_out;
+%         [rad_out] = polar2(LxNow,LyNow,xCenter,yCenter,CatNow);
+%         radius_List(i) = rad_out;
         daxCenter=[Ry(i),Rx(i)];
         daxCenterScale=round(daxCenter*scale);
         
@@ -235,7 +233,7 @@ fprintf('Cropping done! \rMatched ROIs: %d \rNon-matched ROIs: %d \rWriting outp
 
 %% [scores,predicted_labels] = binary_classifier(theta, classifier_parameters);
 %need to load SVMModel first
-% [predicted_labels,scores] = predict(SVMModel,classifier_parameters');
+[predicted_labels,scores] = predict(SVMModel,classifier_parameters');
 
 list_final = MatToStruct(data_final);
 if ~~dax
