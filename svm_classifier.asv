@@ -1,8 +1,8 @@
 %  This classifier works with regions cropped by CropROIHR_polar
-%  Each region is binned into 2D pixels and convolved with a set 
-%  of kernels 
-%  Region for convolution is defined by edgek - center of ROI is assumed to
-%  be [10,10] as defined by offset parameter in CropROIHR_polar
+%
+%
+%
+%
 % 
 %
 %load bin file
