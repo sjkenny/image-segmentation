@@ -41,6 +41,7 @@ for i=1:framenum
                     (r_hist./list_num)'; std(t_hist)/mean(t_hist);...
                     std(r_hist)/mean(r_hist)];
     parameters(:,i) = train_Now;
+    
 end
  [label_svm_predict,score_svm_predict] = predict(SVMModel,parameters');   
     

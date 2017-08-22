@@ -17,8 +17,8 @@ addpath(genpath('common'))
 addpath ex1
 %%
 
-load('kernels_norm')
-load('svm_conv_2')
+load('kernels_080817')
+load('SVMModel_080817')
 
 if exist('LastFolder','var')
     GetFileName=sprintf('%s/*.bin',LastFolder);
@@ -26,7 +26,7 @@ else
     GetFileName='*.bin';
 end
 %cat to search
-cat=4;
+cat=2;
 [FileNameL,PathNameL] = uigetfile(GetFileName,'Select the STORM bin file to crop');
 LastFolder=PathNameL;
 
@@ -52,9 +52,9 @@ for i=1:max(list.frame)
     [count edges mid loc] = histcn([x_now y_now],edgek,edgek);
     n=numel(x_now);
     %normalize by max bin
-%     count_norm=count./max(max(count));
+    count_norm=count./max(max(count));
     %normalize by total counts
-    count_norm = count./sum(sum(count));
+%     count_norm = count./sum(sum(count));
     
 %     
     f_disk_max = max(max(imfilter(count_norm,f_disk,'symmetric')));
@@ -76,6 +76,12 @@ for i=1:max(list.frame)
                  f_disk_large_max-f_disk_small_max;...
                  f_disk_large_max-f_gauss_max];
     train.X(:,i) = train_Now;
+    
+    clf
+    plot(x_now,y_now,'k.')
+    axis equal
+    hold on
+    keyboard
 end
 
 %% SVM
@@ -86,8 +92,8 @@ X=train.X';
 % label_idx_1 = find(labels);
 % label_idx_0 = find(~labels);
 % clf
-% plot(train.X(1,label_idx_1),train.X(3,label_idx_1),'k.')
+% plot(train.X(2,label_idx_1),train.X(4,label_idx_1),'k.')
 % hold on
-% plot(train.X(1,label_idx_0),train.X(3,label_idx_0),'m.')
+% plot(train.X(2,label_idx_0),train.X(4,label_idx_0),'m.')
 
 

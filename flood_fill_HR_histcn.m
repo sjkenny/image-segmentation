@@ -39,7 +39,7 @@ thresh_high = max(num_out(:));
 img = mat2gray(num_out);
 
 %filter and make bw img
-while KeepGoing==1;
+while KeepGoing==1
     prompt = 'Set intensity threshold (press 0 to exit): ';
 
     thresh = input(prompt);

@@ -18,7 +18,7 @@ else
     GetFileName='*.bin';
 end
 %cat to search
-cat=2;
+cat=1;
 [FileNameL,PathNameL] = uigetfile(GetFileName,'Select the STORM bin file to crop');
 LastFolder=PathNameL;
 
@@ -50,12 +50,12 @@ for i=1:length(labels)
     %normalize by max bin
     count_norm=count./max(max(count));
     %normalize by total counts
-    count_norm = count./sum(sum(count));
+%     count_norm = count./sum(sum(count));
     
 %     
     f_disk_max = max(max(imfilter(count_norm,f_disk,'symmetric')));
     f_gauss_max = max(max(imfilter(count_norm,f_gauss,'symmetric')));
-    f_ring_max = max(max(imfilter(count_norm,f_ring,'symmetric')));
+    f_ring_max = max(max(imfilter(count_norm,f_disk-f_gauss,'symmetric')));
     f_disk_small_max = max(max(imfilter(count_norm,f_disk_small,'symmetric')));
     f_disk_large_max = max(max(imfilter(count_norm,f_disk_large,'symmetric')));
     count_std = std(count_norm(:));
