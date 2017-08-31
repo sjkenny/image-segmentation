@@ -235,6 +235,17 @@ fprintf('Cropping done! \rMatched ROIs: %d \rNon-matched ROIs: %d \rWriting outp
 %need to load SVMModel first
 [predicted_labels,scores] = predict(SVMModel,classifier_parameters');
 
+list_final = MatToStruct(data_final);
+if ~~dax
+    if ~isempty(data_final_match)
+        list_final_match = MatToStruct(data_final_match);
+        LxN_match = list_final_match.xc;
+    LyN_match = list_final_match.yc;
+end
+LxN = list_final.xc;
+LyN = list_final.yc;
+
+
 if AverageMode==1
 %taken care of when data is centered
 %     list_final.x = LxN+offset;
@@ -253,32 +264,11 @@ else
     outfile=sprintf('%s-CropROIs-combined.bin',filehead);
 end
 
-
-list_final = MatToStruct(data_final);
-if ~~dax
-    if ~isempty(data_final_match)
-        list_final_match = MatToStruct(data_final_match);
-        LxN_match = list_final_match.xc;
-        LyN_match = list_final_match.yc;
-        WriteMolBinNXcYcZc(list_final_match,outfile_match);
-    end
-end
-LxN = list_final.xc;
-LyN = list_final.yc;
-
-
-
-
 if ~~dax
     MovSize=size(NewMov);
     MovSize_match=size(NewMov_match);
     MovSize=MovSize(3);
-    %in case there's a single matched ROI
-    try
-        MovSize_match=MovSize_match(3);
-    catch
-        MovSize_match=1;
-    end
+    MovSize_match=MovSize_match(3);
     NewMov=int16(NewMov);
     NewMov_match=int16(NewMov_match);
     NewMov=abs(NewMov);
@@ -305,7 +295,7 @@ if ~~dax
     info.localName=FileNameInfNew_match;
     WriteDAXFiles(NewMov_match,info);
     
-%     WriteMolBinNXcYcZc(list_final_match,outfile_match);
+    WriteMolBinNXcYcZc(list_final_match,outfile_match);
 end
 
 WriteMolBinNXcYcZc(list_final,outfile);

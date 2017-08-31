@@ -73,8 +73,8 @@ while ~FindCenters
     count(aiLow:aiHigh,biLow:biHigh)=0;
 end
 
-outfile=sprintf('%s-coords',filename)
-save(outfile,'coords')
+% outfile=sprintf('%s-coords',filename)
+% save(outfile,'coords')
 % %% plotting
 % clf
 % im_large = imresize(imadjust(uint16(count_copy)),1);
